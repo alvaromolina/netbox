@@ -74,10 +74,37 @@ class PrefixViewSet(CustomFieldModelViewSet):
     serializer_class = serializers.PrefixSerializer
     filterset_class = filters.PrefixFilterSet
 
+    def get_queryset(self):
+        # Show only top-level prefixes by default (unless searching)
+        limit = None if self.request.GET.get('expand') or self.request.GET.get('q') or self.action != 'list' else 0
+        return self.queryset.annotate_depth_rest(limit)
+        
     def get_serializer_class(self):
         if self.action == "available_prefixes" and self.request.method == "POST":
             return serializers.PrefixLengthSerializer
         return super().get_serializer_class()
+
+    @swagger_auto_schema(method='get', responses={200: serializers.AvailablePrefixSerializer(many=True)})
+    @action(detail=True, url_path='child-prefixes', methods=['get'])
+    def child_prefixes(self, request, pk=None):
+        prefix = get_object_or_404(Prefix, pk=pk)
+        child_prefixes = prefix.get_child_prefixes()
+        serializer = serializers.PrefixSerializer(child_prefixes, many=True, context={
+            'request': request,
+            'vrf': prefix.vrf,
+        })
+        return Response(serializer.data)
+
+    @swagger_auto_schema(method='get', responses={200: serializers.AvailablePrefixSerializer(many=True)})
+    @action(detail=True, url_path='child-ips', methods=['get'])
+    def child_ips(self, request, pk=None):
+        prefix = get_object_or_404(Prefix, pk=pk)
+        child_ips = prefix.get_child_ips()
+        serializer = serializers.IPAddressSerializer(child_ips, many=True, context={
+            'request': request,
+            'vrf': prefix.vrf,
+        })
+        return Response(serializer.data)
 
     @swagger_auto_schema(method='get', responses={200: serializers.AvailablePrefixSerializer(many=True)})
     @swagger_auto_schema(method='post', responses={201: serializers.AvailablePrefixSerializer(many=True)})

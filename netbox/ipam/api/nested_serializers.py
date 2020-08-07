@@ -1,7 +1,9 @@
 from rest_framework import serializers
 
 from ipam import models
-from utilities.api import WritableNestedSerializer
+from utilities.api import WritableNestedSerializer, ChoiceField
+from ipam.choices import *
+
 
 __all__ = [
     'NestedAggregateSerializer',
@@ -89,10 +91,11 @@ class NestedVLANSerializer(WritableNestedSerializer):
 class NestedPrefixSerializer(WritableNestedSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='ipam-api:prefix-detail')
     family = serializers.IntegerField(read_only=True)
+    status = ChoiceField(choices=PrefixStatusChoices, required=False)
 
     class Meta:
         model = models.Prefix
-        fields = ['id', 'url', 'family', 'prefix']
+        fields = ['id', 'url', 'family', 'prefix','status']
 
 
 #

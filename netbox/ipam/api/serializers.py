@@ -142,12 +142,15 @@ class PrefixSerializer(TaggitSerializer, CustomFieldModelSerializer):
     status = ChoiceField(choices=PrefixStatusChoices, required=False)
     role = NestedRoleSerializer(required=False, allow_null=True)
     tags = TagListSerializerField(required=False)
+    utilization = serializers.IntegerField(source='get_utilization')
+
+    child_prefixes = NestedPrefixSerializer(source='get_child_prefixes', many=True)
 
     class Meta:
         model = Prefix
         fields = [
             'id', 'family', 'prefix', 'site', 'vrf', 'tenant', 'vlan', 'status', 'role', 'is_pool', 'description',
-            'tags', 'custom_fields', 'created', 'last_updated',
+            'tags', 'custom_fields', 'created', 'last_updated','utilization','child_prefixes',
         ]
         read_only_fields = ['family']
 

@@ -34,3 +34,12 @@ class PrefixQuerySet(QuerySet):
         if limit is None:
             return queryset
         return list(filter(lambda p: p.depth <= limit, queryset))
+
+
+    def annotate_depth_rest(self, limit=None):
+        
+        queryset = self.annotate_depth(limit)
+        if limit is None:
+            return queryset
+        else:
+            return self.model.objects.filter(id__in=[prefix.id for prefix in queryset])
